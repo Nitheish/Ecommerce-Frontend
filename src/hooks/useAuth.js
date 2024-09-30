@@ -1,4 +1,3 @@
-// src/hooks/useAuth.js
 import { useState, useEffect } from 'react';
 import { login, signup, logout, fetchUserOrders } from '../api'; // Adjust the path according to your structure
 
@@ -15,17 +14,14 @@ const useAuth = () => {
     setLoading(false);
   }, []);
 
-  const handleLogin = async (credentials) => {
-    setLoading(true);
+  const handleLogin = async (email, password) => {
     try {
-      const data = await login(credentials);
-      setUser(data);
-      localStorage.setItem('user', JSON.stringify(data));
-      setError(null);
+      const res = await login(email, password);
+      setUser(res.user);  // Set the user data
+      localStorage.setItem('token', res.token);  // Store the token in localStorage
+      localStorage.setItem('user', JSON.stringify(res.user));
     } catch (err) {
-      setError(err.response ? err.response.data.message : err.message);
-    } finally {
-      setLoading(false);
+      throw new Error('Login failed');
     }
   };
 
@@ -46,12 +42,13 @@ const useAuth = () => {
   const handleLogout = () => {
     logout();
     setUser(null);
+    localStorage.removeItem('token');  // Remove the token from localStorage
   };
 
   const fetchOrders = async () => {
     if (!user) return [];
     try {
-      const orders = await fetchUserOrders(user.token);
+      const orders = await fetchUserOrders(); // Token automatically attached
       return orders;
     } catch (err) {
       setError(err.response ? err.response.data.message : err.message);

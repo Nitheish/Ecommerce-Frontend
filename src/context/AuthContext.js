@@ -14,7 +14,7 @@ const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const { data } = await axios.post(`${process.env.REACT_APP_API_URL}/auth/login`, { email, password });
+      const { data } = await axios.post(`http://localhost:5000/api/auth/login`, { email, password });
       setUser(data.user);
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
@@ -25,7 +25,7 @@ const AuthProvider = ({ children }) => {
 
   const signup = async (name, email, password) => {
     try {
-      const { data } = await axios.post(`${process.env.REACT_APP_API_URL}/auth/signup`, { name, email, password });
+      const { data } = await axios.post(`http://localhost:5000/api/auth/signup`, { name, email, password });
       setUser(data.user);
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));

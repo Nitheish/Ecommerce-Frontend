@@ -1,82 +1,78 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+// src/components/Cart/Cart.js
+import React from 'react';
+import { useCart } from '../../context/CartContext';
+import {
+  Container,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  CardMedia,
+  Button,
+} from '@mui/material';
+import Header from '../Header/header';
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([]);
-  const [totalPrice, setTotalPrice] = useState(0);
+  const { cartItems, removeFromCart } = useCart();
 
-  // Load cart items from LocalStorage
-  useEffect(() => {
-    const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
-    setCartItems(storedCart);
-    calculateTotal(storedCart);
-  }, []);
-
-  const calculateTotal = (items) => {
-    const total = items.reduce((acc, item) => acc + item.sellingPrice * item.quantity, 0);
-    setTotalPrice(total);
-  };
-
-  const handleQuantityChange = (id, quantity) => {
-    const updatedCart = cartItems.map(item =>
-      item._id === id ? { ...item, quantity: Math.max(quantity, 1) } : item
-    );
-    setCartItems(updatedCart);
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
-    calculateTotal(updatedCart);
-  };
-
-  const handleRemoveItem = (id) => {
-    const updatedCart = cartItems.filter(item => item._id !== id);
-    setCartItems(updatedCart);
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
-    calculateTotal(updatedCart);
-  };
-
-  const handleCheckout = async () => {
-    // Perform checkout logic (like API call to place an order)
-    try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/checkout`, { cartItems });
-      console.log('Checkout successful:', response.data);
-      // Clear cart after successful checkout
-      setCartItems([]);
-      localStorage.removeItem('cart');
-      alert('Checkout successful!');
-    } catch (error) {
-      console.error('Error during checkout:', error);
-    }
+  // Calculate total price of items in the cart
+  const calculateTotalPrice = () => {
+    return cartItems.reduce((total, product) => total + product.sellingPrice * product.quantity, 0).toFixed(2);
   };
 
   return (
-    <div>
-      <h2>Your Cart</h2>
-      {cartItems.length === 0 ? (
-        <p>Your cart is empty</p>
-      ) : (
-        <div>
-          <ul>
-            {cartItems.map(item => (
-              <li key={item._id} className="cart-item">
-                <h3>{item.name}</h3>
-                <img src={item.image} alt={item.name} />
-                <p>Price: ${item.sellingPrice}</p>
-                <label>
-                  Quantity:
-                  <input
-                    type="number"
-                    value={item.quantity}
-                    onChange={(e) => handleQuantityChange(item._id, Number(e.target.value))}
-                  />
-                </label>
-                <button onClick={() => handleRemoveItem(item._id)}>Remove</button>
-              </li>
-            ))}
-          </ul>
-          <h3>Total Price: ${totalPrice}</h3>
-          <button onClick={handleCheckout}>Checkout</button>
-        </div>
-      )}
-    </div>
+    <>
+      <Header />
+      <Container sx={{ mt: 4 }}>
+        <Typography variant="h4" gutterBottom>
+          Shopping Cart
+        </Typography>
+        {cartItems.length === 0 ? (
+          <Typography variant="h6" color="text.secondary">
+            Your cart is empty.
+          </Typography>
+        ) : (
+          <>
+            <Grid container spacing={4}>
+              {cartItems.map((product) => (
+                <Grid item xs={12} sm={6} md={4} key={product._id}>
+                  <Card>
+                    <CardMedia
+                      component="img"
+                      height="200"
+                      image={product.image}
+                      alt={product.name}
+                    />
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom>
+                        {product.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        <strong>Price:</strong> ${product.sellingPrice}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        <strong>Quantity:</strong> {product.quantity} {product.uom}
+                      </Typography>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        onClick={() => removeFromCart(product._id)}
+                        sx={{ mt: 2 }}
+                      >
+                        Remove from Cart
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+            <Typography variant="h5" sx={{ mt: 4 }}>
+              Total Price: ${calculateTotalPrice()}
+            </Typography>
+          </>
+        )}
+      </Container>
+    </>
   );
 };
 

@@ -1,7 +1,7 @@
 // src/api.js
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api'; // Your backend API URL
+const API_URL =  'http://localhost:5000/api'; // Your backend API URL
 
 // User Authentication API
 // Function to sign up a new user
@@ -11,9 +11,11 @@ export const signup = async (userData) => {
 };
 
 // Function to log in a user
-export const login = async (credentials) => {
+const login = async (credentials) => {
   const response = await axios.post(`${API_URL}/auth/login`, credentials);
-  return response.data;
+  const { token } = response.data; // Assuming token is returned in response
+  localStorage.setItem('token', token); // Store the token in local storage
+  // Add additional logic for setting user state if necessary
 };
 
 // Function to log out a user
@@ -108,3 +110,4 @@ export const fetchUsers = async (token) => {
   });
   return response.data;
 };
+
