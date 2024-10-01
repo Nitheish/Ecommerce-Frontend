@@ -13,9 +13,9 @@ export const signup = async (userData) => {
 // Function to log in a user
 const login = async (credentials) => {
   const response = await axios.post(`${API_URL}/auth/login`, credentials);
-  const { token } = response.data; // Assuming token is returned in response
-  localStorage.setItem('token', token); // Store the token in local storage
-  // Add additional logic for setting user state if necessary
+  const { token } = response.data; 
+  localStorage.setItem('token', token); 
+ 
 };
 
 // Function to log out a user
@@ -23,7 +23,8 @@ export const logout = () => {
   localStorage.removeItem('user');
 };
 
-// Product Management API
+
+
 // Function to fetch all products
 export const fetchProducts = async () => {
   const response = await axios.get(`${API_URL}/products`);
@@ -31,9 +32,16 @@ export const fetchProducts = async () => {
 };
 
 // Function to fetch a single product by ID
-export const fetchProductById = async (productId) => {
-  const response = await axios.get(`${API_URL}/products/${productId}`);
-  return response.data;
+export const fetchProductById = async (id, token) => {
+  try {
+    const response = await axios.get(`${API_URL}/products/${id}`, {
+      headers: { Authorization: `Bearer ${token}` }, // Include Bearer token in headers
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching product by ID:', error);
+    throw error; // Rethrow the error for handling in the calling function
+  }
 };
 
 // Function to add a new product (Admin only)
@@ -87,12 +95,24 @@ export const placeOrder = async (orderData, token) => {
   return response.data;
 };
 
-// Function to fetch all orders (Admin only)
-export const fetchOrders = async (token) => {
-  const response = await axios.get(`${API_URL}/orders`, {
+// Function to fetch user orders (Requires user to be logged in)
+
+
+// Function to fetch a specific order by ID (Requires user to be logged in)
+export const fetchOrderDetails = async (orderId, token) => {
+  const response = await axios.get(`${API_URL}/orders/${orderId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;
+};
+
+
+// Function to fetch all orders (Admin only)
+export const getOrderDetails = async (token) => {
+  const response = await axios.get(`${API_URL}/orders`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data; // Adjust according to your API response structure
 };
 
 // Function to fetch orders of a specific user

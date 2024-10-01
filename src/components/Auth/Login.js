@@ -1,7 +1,6 @@
-// src/components/Auth/Login.js
 import React, { useContext, useState } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import { Button, TextField, Box, Typography, Container } from '@mui/material';
+import { Button, TextField, Box, Typography, Container, Link } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
@@ -13,13 +12,22 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError(''); // Clear any previous errors
+  
     try {
-      await login(email, password);  // Call the login function from AuthContext
-      navigate('/home');  // Redirect to the home page after successful login
+      const response = await login(email, password);  // Call the login function from AuthContext
+      console.log(response,"response");
+      // Check if the response status is 200 (OK)
+      if (response.success) {
+        navigate('/home');  // Redirect to the home page after successful login
+      } else {
+        setError('Invalid email or password');  // Handle non-200 status
+      }
     } catch (err) {
       setError('Invalid email or password');  // Display an error message on failure
     }
   };
+  
 
   return (
     <Container component="main" maxWidth="xs">
@@ -68,6 +76,14 @@ const Login = () => {
           >
             Login
           </Button>
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="body2">
+              Don't have an account?{' '}
+              <Link href="/signup" variant="body2">
+                Sign Up
+              </Link>
+            </Typography>
+          </Box>
         </Box>
       </Box>
     </Container>

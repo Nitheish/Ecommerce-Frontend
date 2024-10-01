@@ -10,6 +10,7 @@ import Checkout from './components/Checkout';
 import OrderSummary from './components/OrderSummary';
 import OrderConfirmation from './components/OrderConfirmation/OrderConfirmation';
 import OrderSuccess from './components/OrderSuccess/OrderSuccess';
+import OrderDetails from './components/OrderDetails/OrderDetails';
 
 const AppRouter = () => {
   return (
@@ -24,6 +25,7 @@ const AppRouter = () => {
       <Route path="/order-summary" element={<OrderSummary />} />
       <Route path="/order-confirmation" element={<OrderConfirmation />} />
       <Route path="/order-success" element={<OrderSuccess />} />
+      <Route path="/order-details" element={<OrderDetails />} />
     </Routes>
   );
 };

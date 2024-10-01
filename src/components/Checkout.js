@@ -2,7 +2,7 @@
 import React from 'react';
 import { useCart } from '../context/CartContext';
 import { placeOrder } from '../utils/api'; // Make sure to import your API call
-import { Container, Typography, Grid, Card, CardContent, Button } from '@mui/material';
+import { Container, Typography, Grid, Card, CardContent, Button, CardMedia } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header/header'; // Adjust the import according to your structure
 
@@ -16,8 +16,16 @@ const OrderConfirmation = () => {
   const handlePlaceOrder = async () => {
     const token = localStorage.getItem('token'); // Get token from local storage
     const orderData = {
-      products: cartItems,
+      products: cartItems.map(item => ({
+        productId: item._id,
+        name: item.name,  // Include product name
+        quantity: item.quantity,
+        sellingPrice: item.sellingPrice,
+        uom: item.uom,
+        image: item.image, // Include product image
+      })),
       totalPrice,
+      paymentMethod: 'Cash', // You can modify this based on user input or choice
     };
 
     try {
@@ -48,6 +56,12 @@ const OrderConfirmation = () => {
               {cartItems.map((product) => (
                 <Grid item xs={12} sm={6} md={4} key={product._id}>
                   <Card>
+                    <CardMedia
+                      component="img"
+                      alt={product.name}
+                      height="140"
+                      image={product.image} // Set the product image URL here
+                    />
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         {product.name}
