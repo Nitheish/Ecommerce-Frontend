@@ -7,7 +7,7 @@ import { Box, Typography, Container } from '@mui/material';
 const Home = () => {
   return (
     <>
-      <Header />
+      {/* <Header /> */}
       
       {/* Hero Section */}
       <Box
@@ -15,7 +15,7 @@ const Home = () => {
           backgroundImage: 'url(https://namtech.com.au/wp-content/uploads/2019/12/E-Commerce011.jpg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          height: '670px',
+          height: '470px',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
@@ -28,9 +28,9 @@ const Home = () => {
       </Box>
       
       {/* Product List */}
-      {/* <Container sx={{ mt: 4 }}>
+      <Container sx={{ mt: 4 }}>
         <ProductList />
-      </Container> */}
+      </Container>
     </>
   );
 };

@@ -22,7 +22,7 @@ const Cart = () => {
 
   return (
     <>
-      <Header />
+      
       <Container sx={{ mt: 4 }}>
         <Typography variant="h4" gutterBottom>
           Shopping Cart

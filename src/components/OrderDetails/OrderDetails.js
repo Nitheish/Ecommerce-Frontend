@@ -1,81 +1,122 @@
-// src/components/OrderDetails/OrderDetails.js
-import React, { useEffect, useState } from 'react';
-import { Container, Typography, Card, CardContent, Button, Grid } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import Header from '../Header/header';
-import { getOrderDetails, fetchProductById } from '../../utils/api'; // Import your API calls
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Container, Typography, Card, CardContent, Grid, Box } from '@mui/material';
+import { useAuth } from '../../context/AuthContext';
 
 const OrderDetails = () => {
-  const [order, setOrder] = useState(null);
-  const [products, setProducts] = useState([]); // State to hold product details
-  const navigate = useNavigate();
+  const { user } = useAuth(); // Get logged-in user from context
+  const [orders, setOrders] = useState([]); // Initialize orders as an empty array
+  const [error, setError] = useState(null);
+  const [productDetails, setProductDetails] = useState({}); // Store product details
 
   useEffect(() => {
-    const fetchOrderDetails = async () => {
+    const fetchOrders = async () => {
       try {
-        const token = localStorage.getItem('token'); // Get token from local storage
-        const orderData = await getOrderDetails(token); // Call your API to get order details
-        setOrder(orderData[0]); // Assuming the API returns an array and we want the first order
-        
-        // Fetch product details for each product ID
-        const productDetailsPromises = orderData[0].products.map(product =>
-          fetchProductById(product._id) // Use fetchProductById instead
-        );
-        const fetchedProducts = await Promise.all(productDetailsPromises);
-        setProducts(fetchedProducts);
+        const token = localStorage.getItem('token');
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };
+        const response = await axios.get('http://localhost:5000/api/orders', config);
+        setOrders(response.data || []); // Ensure response data is always an array
       } catch (error) {
-        console.error('Error fetching order details:', error);
-        // Handle error (e.g., redirect to an error page or show a message)
+        console.error('Error fetching orders:', error);
+        setError('Failed to fetch orders.');
       }
     };
 
-    fetchOrderDetails();
-  }, []);
+    if (user) {
+      fetchOrders(); // Fetch orders only if user is logged in
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      if (orders.length > 0) {
+        const productIds = orders.flatMap(order => 
+          order.products.map(item => item?.product?._id) // Ensure this returns just product IDs
+        ).filter(id => id); // Filter to remove any null or undefined values
+  
+        if (productIds.length > 0) {
+          const uniqueProductIds = [...new Set(productIds)]; // Ensure these are unique IDs
+  
+          // Debug log to check the values being passed
+          console.log('Unique Product IDs:', uniqueProductIds);
+  
+          const productPromises = uniqueProductIds.map(id => {
+            return axios.get(`http://localhost:5000/api/products/${id}`); // Ensure id is the string ID
+          });
+  
+          try {
+            const productResponses = await Promise.all(productPromises);
+            const details = productResponses.reduce((acc, product) => {
+              acc[product.data._id] = product.data; // Store product details by ID
+              return acc;
+            }, {});
+            setProductDetails(details); // Store all product details
+          } catch (error) {
+            console.error('Error fetching product details:', error);
+            setError('Failed to fetch product details.');
+          }
+        }
+      }
+    };
+  
+    fetchProductDetails(); // Fetch product details when orders change
+  }, [orders]);
+  
+  
 
   return (
-    <>
-      <Header />
-      <Container sx={{ mt: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Order Details
-        </Typography>
-        {order ? (
-          <Grid container spacing={4}>
-            <Grid item xs={12}>
-              <Card>
+    <Container sx={{ mt: 4 }}>
+      <Typography variant="h4" gutterBottom>
+        Your Orders
+      </Typography>
+      {error && <Typography color="error">{error}</Typography>}
+      {orders.length === 0 ? (
+        <Typography variant="h6">You have no orders.</Typography>
+      ) : (
+        <Grid container spacing={3}>
+          {orders.map((order) => (
+            <Grid item xs={12} key={order._id}>
+              <Card sx={{ borderRadius: '16px', boxShadow: 3 }}>
                 <CardContent>
-                  <Typography variant="h5" gutterBottom>
-                    Order ID: {order.orderUUID}
-                  </Typography>
-                  <Typography variant="h6" gutterBottom>
-                    Payment Method: {order.paymentMethod}
-                  </Typography>
-                  <Typography variant="h6" gutterBottom>
-                    Products:
-                  </Typography>
-                  {products.map((product, index) => (
-                    <Typography key={product._id} variant="body1">
-                      {product.name} - ${product.sellingPrice} x {order.products[index].quantity}
-                    </Typography>
-                  ))}
-                  <Typography variant="h6" sx={{ mt: 2 }}>
-                    Total Price: ${order.totalPrice.toFixed(2)}
-                  </Typography>
+                  <Typography variant="h6">Order ID: {order._id}</Typography>
                   <Typography variant="body2" color="textSecondary">
-                    Order Date: {new Date(order.createdAt).toLocaleDateString()}
+                    Date: {new Date(order.createdAt).toLocaleDateString()}
                   </Typography>
+                  <Typography variant="body2">Status: {order.isPaid ? 'Paid' : 'Pending'}</Typography>
+                  <Typography variant="body1" sx={{ mt: 2 }}>
+                    Total Amount: ${order.totalPrice}
+                  </Typography>
+
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="h6">Items:</Typography>
+                    {Array.isArray(order.products) && order.products.length > 0 ? (
+                      order.products.map((item, index) => {
+                        const product = productDetails[item._id]; // Correctly reference product by _id
+                        return (
+                          <Box key={index} sx={{ mt: 1 }}>
+                            <Typography variant="body2">
+                              {product ? product.name : 'Product not found'} - {item.quantity} pcs - ${product ? product.sellingPrice : 'N/A'}
+                            </Typography>
+                          </Box>
+                        );
+                      })
+                    ) : (
+                      <Typography variant="body2" color="textSecondary">
+                        No items in this order.
+                      </Typography>
+                    )}
+                  </Box>
                 </CardContent>
               </Card>
             </Grid>
-          </Grid>
-        ) : (
-          <Typography variant="body1">Loading order details...</Typography>
-        )}
-        <Button variant="contained" onClick={() => navigate('/home')} sx={{ mt: 2 }}>
-          Back to Home
-        </Button>
-      </Container>
-    </>
+          ))}
+        </Grid>
+      )}
+    </Container>
   );
 };
 

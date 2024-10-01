@@ -6,7 +6,7 @@ import { Container, Typography, Grid, Card, CardContent, Button, CardMedia } fro
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header/header'; // Adjust the import according to your structure
 
-const OrderConfirmation = () => {
+const Checkout = () => {
   const { cartItems } = useCart();
   const navigate = useNavigate();
 
@@ -41,7 +41,7 @@ const OrderConfirmation = () => {
 
   return (
     <>
-      <Header />
+     
       <Container sx={{ mt: 4 }}>
         <Typography variant="h4" gutterBottom>
           Order Confirmation
@@ -90,4 +90,4 @@ const OrderConfirmation = () => {
   );
 };
 
-export default OrderConfirmation;
+export default Checkout;

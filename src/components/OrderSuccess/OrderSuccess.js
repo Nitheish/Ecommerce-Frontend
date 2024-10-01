@@ -7,7 +7,7 @@ import Header from '../Header/header';
 const OrderSuccess = () => {
   return (
     <>
-      <Header />
+      
       <Container sx={{ mt: 4, textAlign: 'center' }}>
         <Typography variant="h4" gutterBottom>
           Order Placed Successfully!

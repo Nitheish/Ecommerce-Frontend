@@ -42,7 +42,8 @@ const Header = () => {
             Cart ({cartItems.length}) {/* Display cart count */}
           </Button>
           <Button color="inherit" component={Link} to="/about">About</Button>
-          <Button color="inherit" component={Link} to="/checkout">Checkout</Button> {/* Checkout Button */}
+          <Button color="inherit" component={Link} to="/checkout">Checkout</Button> 
+          <Button color="inherit" component={Link} to="/order-details">My Orders</Button> 
           
           {/* Display user profile menu if user is logged in */}
           {user ? (
