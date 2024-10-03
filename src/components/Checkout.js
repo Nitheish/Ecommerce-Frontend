@@ -1,18 +1,19 @@
-// src/components/OrderConfirmation/OrderConfirmation.js
-import React from 'react';
+import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { placeOrder } from '../utils/api'; // Make sure to import your API call
-import { Container, Typography, Grid, Card, CardContent, Button, CardMedia } from '@mui/material';
+import { Container, Typography, Grid, Card, CardContent, Button, CardMedia, MenuItem, Select, InputLabel, FormControl } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header/header'; // Adjust the import according to your structure
 
 const Checkout = () => {
   const { cartItems } = useCart();
   const navigate = useNavigate();
+  const [paymentMethod, setPaymentMethod] = useState('Cash'); // State for payment method
 
   // Calculate total price
   const totalPrice = cartItems.reduce((total, item) => total + item.sellingPrice * item.quantity, 0);
 
+  // Handle placing the order
   const handlePlaceOrder = async () => {
     const token = localStorage.getItem('token'); // Get token from local storage
     const orderData = {
@@ -25,7 +26,7 @@ const Checkout = () => {
         image: item.image, // Include product image
       })),
       totalPrice,
-      paymentMethod: 'Cash', // You can modify this based on user input or choice
+      paymentMethod, // Pass the selected payment method
     };
 
     try {
@@ -41,7 +42,6 @@ const Checkout = () => {
 
   return (
     <>
-     
       <Container sx={{ mt: 4 }}>
         <Typography variant="h4" gutterBottom>
           Order Confirmation
@@ -77,10 +77,32 @@ const Checkout = () => {
                 </Grid>
               ))}
             </Grid>
+
             <Typography variant="h5" sx={{ mt: 3 }}>
               Total Price: ${totalPrice.toFixed(2)}
             </Typography>
-            <Button variant="contained" color="primary" onClick={handlePlaceOrder} sx={{ mt: 2 }}>
+
+            <FormControl fullWidth sx={{ mt: 3, width: '150px' }}> {/* Set a fixed width for the select box */}
+              <InputLabel id="payment-method-label">Payment Method</InputLabel>
+              <Select
+                labelId="payment-method-label"
+                id="payment-method"
+                value={paymentMethod}
+                label="Payment Method"
+                onChange={(e) => setPaymentMethod(e.target.value)} // Update the state when the user selects a payment method
+              >
+                <MenuItem value="Cash">Cash</MenuItem>
+                <MenuItem value="Gpay">Gpay</MenuItem>
+              </Select>
+            </FormControl>
+
+            {/* Add margin-top to push the button further down */}
+            <Button 
+              variant="contained" 
+              color="primary" 
+              onClick={handlePlaceOrder} 
+              sx={{ mt: 5 }} // Increased margin-top for spacing
+            >
               Place Order
             </Button>
           </>

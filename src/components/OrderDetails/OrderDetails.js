@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Container, Typography, Card, CardContent, Grid, Box } from '@mui/material';
+import { Container, Typography, Card, CardContent, Grid, CardMedia, Box } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
 
 const OrderDetails = () => {
   const { user } = useAuth(); // Get logged-in user from context
   const [orders, setOrders] = useState([]); // Initialize orders as an empty array
   const [error, setError] = useState(null);
-  const [productDetails, setProductDetails] = useState({}); // Store product details
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -31,43 +30,6 @@ const OrderDetails = () => {
     }
   }, [user]);
 
-  useEffect(() => {
-    const fetchProductDetails = async () => {
-      if (orders.length > 0) {
-        const productIds = orders.flatMap(order => 
-          order.products.map(item => item?.product?._id) // Ensure this returns just product IDs
-        ).filter(id => id); // Filter to remove any null or undefined values
-  
-        if (productIds.length > 0) {
-          const uniqueProductIds = [...new Set(productIds)]; // Ensure these are unique IDs
-  
-          // Debug log to check the values being passed
-          console.log('Unique Product IDs:', uniqueProductIds);
-  
-          const productPromises = uniqueProductIds.map(id => {
-            return axios.get(`http://localhost:5000/api/products/${id}`); // Ensure id is the string ID
-          });
-  
-          try {
-            const productResponses = await Promise.all(productPromises);
-            const details = productResponses.reduce((acc, product) => {
-              acc[product.data._id] = product.data; // Store product details by ID
-              return acc;
-            }, {});
-            setProductDetails(details); // Store all product details
-          } catch (error) {
-            console.error('Error fetching product details:', error);
-            setError('Failed to fetch product details.');
-          }
-        }
-      }
-    };
-  
-    fetchProductDetails(); // Fetch product details when orders change
-  }, [orders]);
-  
-  
-
   return (
     <Container sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom>
@@ -87,6 +49,7 @@ const OrderDetails = () => {
                     Date: {new Date(order.createdAt).toLocaleDateString()}
                   </Typography>
                   <Typography variant="body2">Status: {order.isPaid ? 'Paid' : 'Pending'}</Typography>
+                  <Typography variant="body2">Payment Method: {order.paymentMethod}</Typography>
                   <Typography variant="body1" sx={{ mt: 2 }}>
                     Total Amount: ${order.totalPrice}
                   </Typography>
@@ -95,14 +58,40 @@ const OrderDetails = () => {
                     <Typography variant="h6">Items:</Typography>
                     {Array.isArray(order.products) && order.products.length > 0 ? (
                       order.products.map((item, index) => {
-                        const product = productDetails[item._id]; // Correctly reference product by _id
-                        return (
-                          <Box key={index} sx={{ mt: 1 }}>
-                            <Typography variant="body2">
-                              {product ? product.name : 'Product not found'} - {item.quantity} pcs - ${product ? product.sellingPrice : 'N/A'}
+                        // Check if product exists before trying to access its properties
+                        if (item.product) {
+                          return (
+                            <Card key={index} sx={{ display: 'flex', mt: 2 }}>
+                              <CardMedia
+                                component="img"
+                                sx={{ width: 150, height: 150 }}
+                                image={item.product.image}
+                                alt={item.product.name}
+                              />
+                              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                <CardContent>
+                                  <Typography variant="h6">{item.product.name}</Typography>
+                                  <Typography variant="body2" color="textSecondary">
+                                    {item.product.description}
+                                  </Typography>
+                                  <Typography variant="body2">
+                                    <strong>Price:</strong> ${item.product.sellingPrice}
+                                  </Typography>
+                                  <Typography variant="body2">
+                                    <strong>Quantity:</strong> {item.quantity}
+                                  </Typography>
+                                </CardContent>
+                              </Box>
+                            </Card>
+                          );
+                        } else {
+                          // If no product data is available, render a fallback
+                          return (
+                            <Typography key={index} variant="body2" color="textSecondary">
+                              Product information not available.
                             </Typography>
-                          </Box>
-                        );
+                          );
+                        }
                       })
                     ) : (
                       <Typography variant="body2" color="textSecondary">
